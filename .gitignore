@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+
+# MLflow
+mlruns/
+.mlflow-props
+
+# Data & Models (for this project, you might want to version them, but it's good practice to ignore large data)
+data/raw.csv
+app/state.json
+models/*.joblib
+
+# macOS
+.DS_Store

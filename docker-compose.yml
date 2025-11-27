@@ -1,0 +1,144 @@
+# # The main container for all our services
+# services:
+
+#   # Service 1: The MQTT Broker
+#   broker:
+#     image: eclipse-mosquitto:2
+#     restart: unless-stopped
+#     ports:
+#       - "1883:1883" # Expose MQTT port to the host machine
+
+#   # Service 2: The MLflow UI and Tracking Server
+#   mlflow:
+#     build: . # Build from the Dockerfile in the current directory
+#     restart: unless-stopped
+#     command: mlflow ui --host 0.0.0.0 --port 5001 # Command to run
+#     ports:
+#       - "5001:5001"
+#     volumes:
+#       # Mount the mlruns directory from the host into the container
+#       # This ensures that our experiment data is saved on our machine
+#       - ./mlruns:/app/mlruns
+
+#   # Service 3: The IoT Publisher
+#   publisher:
+#     build: . # Reuse the same Dockerfile
+#     restart: unless-stopped
+#     command: python devices/publisher.py
+#     volumes:
+#       # Mount the data directory so the raw.csv is saved on our machine
+#       - ./data:/app/data
+#     depends_on:
+#       - broker # Don't start this until the broker is ready
+
+#   # Service 4: The Edge Inference Service
+#   edge_infer:
+#     build: . # Reuse the same Dockerfile
+#     restart: unless-stopped
+#     command: python app/edge_infer.py
+#     volumes:
+#       # Mount these directories so the service can read/write data, models,
+#       # state, and training logs to our host machine
+#       - ./data:/app/data
+#       - ./models:/app/models
+#       - ./app:/app/app
+#       - ./mlruns:/app/mlruns
+#     depends_on:
+#       - broker
+#       - mlflow
+
+#   # Service 5: The Streamlit Dashboard
+#   dashboard:
+#     build: . # Reuse the same Dockerfile
+#     restart: unless-stopped
+#     # The command for streamlit requires setting the server address and port
+#     command: streamlit run dashboard/dashboard.py --server.port 8501 --server.address 0.0.0.0
+#     ports:
+#       - "8501:8501" # Expose the Streamlit web port
+#     volumes:
+#       # Mount data and app directories so the dashboard can read the files
+#       - ./data:/app/data
+#       - ./app:/app/app
+#     depends_on:
+#       - edge_infer # Wait for the edge service to be running
+
+
+
+# docker-compose.yml
+
+services:
+  broker:
+    image: eclipse-mosquitto:2
+    restart: unless-stopped
+    ports:
+      - "1883:1883"
+    # Mounts the custom config file to allow remote connections
+    volumes:
+      - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf
+    # Healthcheck to verify the broker is truly ready
+    healthcheck:
+      test: ["CMD", "mosquitto_pub", "-h", "localhost", "-t", "healthcheck", "-m", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  mlflow:
+    build: .
+    restart: unless-stopped
+    command: mlflow ui --host 0.0.0.0 --port 5001
+    ports:
+      - "5001:5001"
+    volumes:
+      - ./mlruns:/app/mlruns
+    environment:
+      - PYTHONUNBUFFERED=1
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5001"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  publisher:
+    build: .
+    restart: unless-stopped
+    command: python devices/publisher.py
+    volumes:
+      - ./data:/app/data
+    environment:
+      - PYTHONUNBUFFERED=1
+    # Waits for the broker's healthcheck to pass before starting
+    depends_on:
+      broker:
+        condition: service_healthy
+
+  edge_infer:
+    build: .
+    restart: unless-stopped
+    command: python app/edge_infer.py
+    volumes:
+      - ./data:/app/data
+      - ./models:/app/models
+      - ./app:/app/app
+      - ./mlruns:/app/mlruns
+    environment:
+      - PYTHONUNBUFFERED=1
+    # Waits for BOTH services to be healthy
+    depends_on:
+      broker:
+        condition: service_healthy
+      mlflow:
+        condition: service_healthy
+
+  dashboard:
+    build: .
+    restart: unless-stopped
+    command: streamlit run dashboard/dashboard.py --server.port 8501 --server.address 0.0.0.0
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./data:/app/data
+      - ./app:/app/app
+    environment:
+      - PYTHONUNBUFFERED=1
+    depends_on:
+      - edge_infer
