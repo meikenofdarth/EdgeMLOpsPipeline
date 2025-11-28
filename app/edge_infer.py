@@ -274,9 +274,9 @@ MQTT_BROKER = "broker"
 MQTT_PORT = 1883
 MQTT_TOPIC_SENSORS = "roomA/sensors"
 MODEL_DIR = "models"
-STATE_FILE = "app/state.json"
+STATE_FILE = "data/state.json"
 N_LAGS = 5
-RETRAIN_THRESHOLD_RMSE = 50.0
+RETRAIN_THRESHOLD_RMSE = 1000.0
 PREDICTION_BUFFER_SIZE = 100
 
 # --- Global State ---

@@ -116,7 +116,7 @@ from datetime import datetime
 import time
 
 # --- Configuration ---
-STATE_FILE = "app/state.json"
+STATE_FILE = "data/state.json"
 RAW_DATA_FILE = "data/raw.csv"
 NUM_ROWS_TO_DISPLAY = 200 # Number of recent data points to show on the chart
 

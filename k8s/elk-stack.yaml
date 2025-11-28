@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: elk
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: elk
+  template:
+    metadata:
+      labels:
+        app: elk
+    spec:
+      containers:
+      - name: elk
+        # Switch to 7.17.5 to bypass the Enrollment Token requirement
+        image: sebp/elk:7.17.5
+        ports:
+        - containerPort: 5601
+        - containerPort: 9200
+        env:
+        - name: ES_JAVA_OPTS
+          value: "-Xms512m -Xmx512m"
+        # Increase startup timeout to prevent crashes
+        - name: ES_CONNECT_RETRY
+          value: "60"
+        resources:
+          limits:
+            memory: "2000Mi"
+          requests:
+            memory: "1000Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: elk
+spec:
+  type: NodePort
+  selector:
+    app: elk
+  ports:
+  - name: kibana
+    port: 5601
+    targetPort: 5601
+    nodePort: 30001
+  - name: es
+    port: 9200
+    targetPort: 9200

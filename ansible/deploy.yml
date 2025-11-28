@@ -1,0 +1,30 @@
+---
+- name: Deploy Framework to K8s
+  hosts: local
+  gather_facts: false
+  tasks:
+    - name: Deploy Broker
+      kubernetes.core.k8s:
+        src: ../k8s/mosquitto.yaml
+        state: present
+        namespace: default
+
+    # --- ADD THIS NEW BLOCK ---
+    - name: Deploy MLflow
+      kubernetes.core.k8s:
+        src: ../k8s/mlflow.yaml
+        state: present
+        namespace: default
+    # --------------------------
+
+    - name: Deploy ELK Stack
+      kubernetes.core.k8s:
+        src: ../k8s/elk-stack.yaml
+        state: present
+        namespace: default
+
+    - name: Deploy App Services
+      kubernetes.core.k8s:
+        src: ../k8s/app-deployment.yaml
+        state: present
+        namespace: default
