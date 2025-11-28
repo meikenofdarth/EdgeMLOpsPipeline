@@ -19,3 +19,11 @@ models/*.joblib
 
 # macOS
 .DS_Store
+
+venv/
+__pycache__/
+*.pyc
+models/
+data/
+.DS_Store
+mlruns/
