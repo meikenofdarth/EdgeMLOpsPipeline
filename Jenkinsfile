@@ -2,7 +2,10 @@ pipeline {
     agent any
 
     environment {
+        // Your Docker Hub Image Name
         DOCKER_IMAGE = "anurag9507/spe-mlops"
+        
+        // This ID must match what you created in Jenkins -> Credentials
         REGISTRY_CREDS = credentials('dockerhub-creds')
     }
 
@@ -16,7 +19,8 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    // Build with a unique tag (Build Number) and 'latest'
+                    echo "Building image..."
+                    // 1. Build with the specific build number
                     sh "docker build -t ${DOCKER_IMAGE}:${BUILD_NUMBER} ."
                     sh "docker tag ${DOCKER_IMAGE}:${BUILD_NUMBER} ${DOCKER_IMAGE}:latest"
                 }
@@ -26,10 +30,8 @@ pipeline {
         stage('Automated Test') {
             steps {
                 script {
-                    echo "Running Syntax Checks..."
-                    // This checks if the Python files are valid without running the infinite loop
+                    echo "Running Syntax Checks (Fast Test)..."
                     sh "docker run --rm ${DOCKER_IMAGE}:${BUILD_NUMBER} python -m py_compile cloud/train.py app/edge_infer.py devices/publisher.py"
-                    echo "Syntax Check Passed!"
                 }
             }
         }
@@ -37,10 +39,8 @@ pipeline {
         stage('Push to Docker Hub') {
             steps {
                 script {
-                    // Login using the credentials variable
+                    echo "Pushing to Docker Hub..."
                     sh "echo $REGISTRY_CREDS_PSW | docker login -u $REGISTRY_CREDS_USR --password-stdin"
-                    
-                    // Push both specific version and latest
                     sh "docker push ${DOCKER_IMAGE}:${BUILD_NUMBER}"
                     sh "docker push ${DOCKER_IMAGE}:latest"
                 }
@@ -50,9 +50,11 @@ pipeline {
         stage('Deploy to K8s') {
             steps {
                 script {
-                    // 1. Update the YAML to use the specific Build Number (Forces K8s to update)
-                    sh "sed -i 's|:latest|:${BUILD_NUMBER}|g' k8s/app-deployment.yaml"   
-                    // 2. Run Ansible to apply changes
+                    echo "Deploying to Kubernetes..."
+                    // Update K8s manifest to use the new Build Number
+                    sh "sed -i 's|:latest|:${BUILD_NUMBER}|g' k8s/app-deployment.yaml"
+                    
+                    // Run Ansible to apply changes
                     sh "ansible-playbook -i ansible/inventory.ini ansible/deploy.yml"
                 }
             }
@@ -61,7 +63,7 @@ pipeline {
 
     post {
         always {
-            // Clean up local docker images to save space
+            // Clean up to save disk space
             sh "docker rmi ${DOCKER_IMAGE}:${BUILD_NUMBER} || true"
             sh "docker rmi ${DOCKER_IMAGE}:latest || true"
         }
