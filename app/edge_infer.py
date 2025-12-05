@@ -115,20 +115,27 @@ def on_message(client, userdata, msg):
 
 # --- Main Execution ---
 if __name__ == "__main__":
-    print("Edge: Waiting for a model to become available...")
-    
-    # Bootstrap Logic: Wait until user runs training once manually
-    while not load_latest_model():
-        time.sleep(5)
-    
-    print("Edge: Initial model loaded. Proceeding to connect to MQTT.")
+    # 1. Check if model exists
+    if not load_latest_model():
+        print("Edge: No model found. Waiting 30s for data, then training...")
+        # Wait for Publisher to generate enough data (need >15 rows)
+        time.sleep(30) 
+        
+        print("Edge: Triggering INITIAL training...")
+        try:
+            # Run training automatically
+            subprocess.run(["python", "cloud/train.py"], check=True)
+            load_latest_model()
+        except Exception as e:
+            print(f"Edge: Initial training failed: {e}")
 
-    # MQTT Setup (V2 API)
+    # 2. Proceed to MQTT (Normal startup)
+    print("Edge: Proceeding to connect to MQTT.")
+    
     client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2, client_id="edge_inference_service")
     client.on_connect = on_connect
     client.on_message = on_message
 
-    # Robust Connection Loop
     connected = False
     while not connected:
         try:

@@ -28,3 +28,9 @@
         src: ../k8s/app-deployment.yaml
         state: present
         namespace: default
+    
+    - name: Deploy Logstash 
+      kubernetes.core.k8s:
+        src: ../k8s/logstash.yaml
+        state: present
+        namespace: default

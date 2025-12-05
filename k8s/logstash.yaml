@@ -1,0 +1,55 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: logstash-config
+data:
+  logstash.conf: |
+    input {
+      mqtt {
+        host => "broker"      # Connects to the K8s Service named 'broker'
+        port => 1883
+        topic => "#"          # Listen to all sensor data
+        qos => 0
+        clean_session => false
+        client_id => "logstash_k8s_worker"
+      }
+    }
+    filter {
+      json { source => "message" }
+    }
+    output {
+      elasticsearch {
+        hosts => ["elk:9200"] # Connects to the K8s Service named 'elk'
+        index => "edge-mlops-%{+YYYY.MM.dd}"
+      }
+      stdout { codec => rubydebug }
+    }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: logstash
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: logstash
+  template:
+    metadata:
+      labels:
+        app: logstash
+    spec:
+      containers:
+      - name: logstash
+        image: anurag9507/logstash-mqtt:latest
+        resources:
+          limits:
+            memory: "1000Mi"
+        volumeMounts:
+        - name: config
+          mountPath: /usr/share/logstash/pipeline/logstash.conf
+          subPath: logstash.conf
+      volumes:
+      - name: config
+        configMap:
+          name: logstash-config
