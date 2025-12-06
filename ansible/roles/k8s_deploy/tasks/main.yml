@@ -1,0 +1,37 @@
+---
+- name: Deploy Broker
+  kubernetes.core.k8s:
+    src: ../k8s/mosquitto.yaml
+    state: present
+    namespace: default
+
+- name: Deploy MLflow
+  kubernetes.core.k8s:
+    src: ../k8s/mlflow.yaml
+    state: present
+    namespace: default
+
+- name: Deploy ELK Stack
+  kubernetes.core.k8s:
+    src: ../k8s/elk-stack.yaml
+    state: present
+    namespace: default
+
+- name: Deploy Logstash
+  kubernetes.core.k8s:
+    src: ../k8s/logstash.yaml
+    state: present
+    namespace: default
+
+- name: Deploy App Services
+  kubernetes.core.k8s:
+    src: ../k8s/app-deployment.yaml
+    state: present
+    namespace: default
+
+# This task is required for the "Scalability" mark
+- name: Apply HPA (Scalability)
+  kubernetes.core.k8s:
+    src: ../k8s/hpa.yaml
+    state: present
+    namespace: default
