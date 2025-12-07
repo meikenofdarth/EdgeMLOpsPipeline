@@ -2,17 +2,13 @@ pipeline {
     agent any
 
     environment {
-        // Your Docker Hub Image Name
+        //Docker Hub Image Name
         DOCKER_IMAGE = "anurag9507/spe-mlops"
-        
-        // This ID must match what you created in Jenkins -> Credentials
         REGISTRY_CREDS = credentials('dockerhub-creds')
-        
-        // Vault Password for Automation (Matches the one you set: 1234)
+        // Vault Password for Automation
         VAULT_PASS = "1234" 
     }
 
-    // --- NEW: SATISFIES "WEBHOOK/AUTOMATION" REQUIREMENT ---
     triggers {
         // This ensures the pipeline runs automatically on Git Push
         githubPush()
@@ -40,7 +36,6 @@ pipeline {
             steps {
                 script {
                     echo "Running Syntax Checks..."
-                    // A simple test to verify code syntax before deploying
                     sh "docker run --rm ${DOCKER_IMAGE}:${BUILD_NUMBER} python -m py_compile cloud/train.py app/edge_infer.py devices/publisher.py"
                 }
             }
@@ -80,9 +75,19 @@ pipeline {
 
     post {
         always {
-            // Clean up Docker images to save disk space
+            // Clean up to save disk space
             sh "docker rmi ${DOCKER_IMAGE}:${BUILD_NUMBER} || true"
             sh "docker rmi ${DOCKER_IMAGE}:latest || true"
+        }
+        success {
+            mail to: 'anurag.ramaswamy.201344@gmail.com',
+                 subject: "SUCCESS: Build ${currentBuild.fullDisplayName}",
+                 body: "Good news! The build was successful.\n\nSee details here: ${env.BUILD_URL}"
+        }
+        failure {
+            mail to: 'anurag.ramaswamy.201344@gmail.com',
+                 subject: "FAILURE: Build ${currentBuild.fullDisplayName}",
+                 body: "The build failed. Please check the logs.\n\nSee details here: ${env.BUILD_URL}"
         }
     }
 }
