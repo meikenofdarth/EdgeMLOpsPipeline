@@ -25,4 +25,11 @@ stop-forward:
 	pkill -f "kubectl port-forward"
 
 # 5. One Command to Deploy and Forward
-up: deploy forward
+up: fix-jenkins deploy forward
+
+# 6. Fix Kubeconfig for Jenkins
+fix-jenkins:
+	@echo " Syncing Kubeconfig to Jenkins..."
+	kubectl config view --flatten > config_temp
+	sudo mv config_temp /var/lib/jenkins/.kube/config
+	sudo chown jenkins:jenkins /var/lib/jenkins/.kube/config

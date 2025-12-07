@@ -9,18 +9,7 @@ pipeline {
         VAULT_PASS = "1234" 
     }
 
-    triggers {
-        // This ensures the pipeline runs automatically on Git Push
-        githubPush()
-    }
-    // -------------------------------------------------------
-
     stages {
-        stage('Checkout') {
-            steps {
-                checkout scm
-            }
-        }
 
         stage('Build Docker Image') {
             steps {
