@@ -17,7 +17,7 @@ MQTT_TOPIC_SENSORS = "roomA/sensors"
 MODEL_DIR = "models"
 STATE_FILE = "data/state.json" # saves to 'data/' volume so dashboard sees it
 N_LAGS = 5
-RETRAIN_THRESHOLD_RMSE = 80.0
+RETRAIN_THRESHOLD_RMSE = 75.0
 PREDICTION_BUFFER_SIZE = 100
 
 # --- Global State ---
