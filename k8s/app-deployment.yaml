@@ -26,8 +26,12 @@ spec:
             - name: MQTT_BROKER
               value: "broker"
           resources:
+            requests:
+              cpu: "100m"
+              memory: "100Mi"
             limits:
               cpu: "500m"
+              memory: "500Mi"
           # Mount the shared folder here
           volumeMounts:
             - name: shared-data
@@ -44,6 +48,13 @@ spec:
           volumeMounts:
             - name: shared-data
               mountPath: /app/data
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "50Mi"
+            limits:
+              cpu: "200m"
+              memory: "200Mi"
 
         # --- Dashboard Service ---
         - name: dashboard
@@ -64,6 +75,13 @@ spec:
           volumeMounts:
             - name: shared-data
               mountPath: /app/data
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "100Mi"
+            limits:
+              cpu: "500m"
+              memory: "500Mi"
 
 ---
 apiVersion: v1
