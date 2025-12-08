@@ -132,5 +132,5 @@ Once deployed, the Makefile automatically forwards ports. You can access the ser
 
 ## Contributors
 
-- **[IMT2022035 Sanchit Kumar Dogra:](https://github.com/meikenofdarth)** 
-- **[IMT2022103 Anurag Ramaswamy:](https://github.com/Anurag9507)** 
+- **[IMT2022035 Sanchit Kumar Dogra](https://github.com/meikenofdarth)** 
+- **[IMT2022103 Anurag Ramaswamy](https://github.com/Anurag9507)** 
