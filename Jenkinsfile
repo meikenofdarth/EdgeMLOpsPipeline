@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         //Docker Hub Image Name
-        DOCKER_IMAGE = "anurag9507/spe-mlops"
+        DOCKER_IMAGE = "smoothlake67/spe-mlops"
         REGISTRY_CREDS = credentials('dockerhub-creds')
         // Vault Password for Automation
         VAULT_PASS = credentials('vault-pass-secret') 
@@ -87,7 +87,7 @@ pipeline {
             sh "docker rmi ${DOCKER_IMAGE}:latest || true"
         }
         success {
-            mail to: 'anurag.ramaswamy.201344@gmail.com',
+            mail to: 'sanchit1472@gmail.com',
             subject: "Build #${env.BUILD_NUMBER} SUCCESS",
             body: """\
             BUILD SUCCESS!
@@ -97,7 +97,7 @@ pipeline {
             """
         }
         failure {
-            mail to: 'anurag.ramaswamy.201344@gmail.com',
+            mail to: 'sanchit1472@gmail.com',
             subject: "Build #${env.BUILD_NUMBER} FAILURE",
             body: """\
             BUILD FAILURE!
