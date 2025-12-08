@@ -91,7 +91,7 @@ pipeline {
             sh "docker rmi ${DOCKER_IMAGE}:latest || true"
         }
         success {
-            mail to: '${env.USER_EMAIL}',
+            mail to: "${env.USER_EMAIL}",
             subject: "Build #${env.BUILD_NUMBER} SUCCESS",
             body: """\
             BUILD SUCCESS!
@@ -101,7 +101,7 @@ pipeline {
             """
         }
         failure {
-            mail to: '${env.USER_EMAIL}',
+            mail to: "${env.USER_EMAIL}",
             subject: "Build #${env.BUILD_NUMBER} FAILURE",
             body: """\
             BUILD FAILURE!
